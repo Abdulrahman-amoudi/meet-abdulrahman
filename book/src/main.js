@@ -71,7 +71,7 @@ async function paintSpread(p, i) {
     const c = document.createElement('canvas'); c.width = SW; c.height = SH;
     const ctx = c.getContext('2d');
     ctx.fillStyle = p.bg; ctx.fillRect(0, 0, SW, SH);
-    const art = (await loadImage(`/book/art/${p.id}.webp`)) || (await loadImage(placeholderSvg(p)));
+    const art = (await loadImage(`/book/art/${p.id}.webp?v=vec1`)) || (await loadImage(placeholderSvg(p)));
     if (art) {
         // Arabic mirrors the layout, so mirror the art to keep the empty side under the words
         if (lang() === 'ar') { ctx.save(); ctx.translate(SW, 0); ctx.scale(-1, 1); cover(ctx, art, SW, SH, p.focus); ctx.restore(); }
@@ -137,15 +137,14 @@ async function paintCover(back) {
     const c = document.createElement('canvas'); c.width = HW; c.height = SH;
     const ctx = c.getContext('2d');
     // his painted cover, used as is; English gets its own lettering on the same ribbon
-    const front = back ? null : await loadImage('/book/art/cover-front.webp?v=3');
+    const front = back ? null : await loadImage('/book/art/cover-front.webp?v=4');
     if (front) {
         ctx.drawImage(front, 0, 0, HW, SH);
         const ar = lang() === 'ar', line = t(UI.coverLines).join(' ');
         let size = 96; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.direction = ar ? "rtl" : "ltr";
-        do { ctx.font = `800 ${size}px "Baloo Bhaijaan 2", "Readex Pro"`; size -= 2; } while (ctx.measureText(line).width > 600 && size > 36);
-        const y = ar ? 200 : 204;
-        ctx.fillStyle = 'rgba(90,60,30,.18)'; ctx.fillText(line, HW / 2 + 2, y + 3);   // ink soaking into the paper
-        ctx.fillStyle = '#33241a'; ctx.fillText(line, HW / 2, y);
+        do { ctx.font = `800 ${size}px "Baloo Bhaijaan 2", "Readex Pro"`; size -= 2; } while (ctx.measureText(line).width > 560 && size > 36);
+        const y = ar ? 288 : 292;
+                ctx.fillStyle = '#33241a'; ctx.fillText(line, HW / 2, y);
         ctx.textBaseline = 'alphabetic';
         return c;
     }
@@ -252,7 +251,7 @@ sun.position.set(2.2, 1.4, 3.6);
 sun.castShadow = true;
 sun.shadow.mapSize.set(2048, 2048);
 Object.assign(sun.shadow.camera, { left: -2.5, right: 2.5, top: 2.5, bottom: -2.5, near: .5, far: 10 });
-sun.shadow.radius = 18; sun.shadow.blurSamples = 16; sun.shadow.bias = -0.0008;
+sun.shadow.radius = 18; sun.shadow.blurSamples = 16; sun.shadow.bias = -0.0012; sun.shadow.normalBias = .012;   // no shadow acne stripes on flat pages
 scene.add(sun);
 scene.add(sun.target);
 
@@ -290,7 +289,7 @@ const edgeTex = (() => {
     const t = new CanvasTexture(c); t.colorSpace = SRGBColorSpace; t.wrapS = t.wrapT = RepeatWrapping; return t;
 })();
 const paperEdge = new MeshStandardMaterial({ color: '#ffffff', map: edgeTex, roughness: 1 });
-const boardMat = new MeshStandardMaterial({ color: '#2a4433', roughness: 1 });
+const boardMat = new MeshStandardMaterial({ color: '#3a6a4f', roughness: 1 });
 const spineMat = boardMat;
 // soft rounded slab (rounded corners in the page plane), centred like a box
 function roundedSlab(w, h, d, r) {

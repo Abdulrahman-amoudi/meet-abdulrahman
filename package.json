@@ -1,0 +1,12 @@
+{
+  "name": "meet-abdulrahman",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "esbuild book/src/main.js --bundle --minify --format=esm --outfile=book/book.js"
+  },
+  "devDependencies": {
+    "esbuild": "^0.25.0",
+    "three": "0.187.0"
+  }
+}

@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Meet Abdulrahman: websites, AI and video from Amman</title>
+<meta name="description" content="A short illustrated book about Abdulrahman Amoudi: what he builds, how he works, and how to reach him.">
+<meta property="og:title" content="Meet Abdulrahman.">
+<meta property="og:description" content="About me and what I do, in a short illustrated book.">
+<meta property="og:image" content="/book/og.jpg">
+<meta name="theme-color" content="#0b0b0c">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 8 8%22 shape-rendering=%22crispEdges%22%3E%3Crect width=%228%22 height=%228%22 fill=%22%230b0b0c%22/%3E%3Cpath d=%22M2 1h4v1H2zM1 2h6v2H1zM2 4h4v3H2z%22 fill=%22%23ff8a2a%22/%3E%3C/svg%3E">
+<link rel="preload" href="/assets/fonts/readex-pro-latin-700-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+Bhaijaan+2:wght@500;600;700;800&display=swap">
+<link rel="preload" as="image" href="/book/ui/name-en.webp?v=2">
+<link rel="stylesheet" href="/book/book.css?v=c98eee00">
+<script>try{if(localStorage.getItem('ab-lang')==='ar'){document.documentElement.lang='ar';document.documentElement.dir='rtl'}}catch(e){}</script>
+</head>
+<body>
+<header class="top">
+  <a class="mark" href="/" aria-label="Abdulrahman"><img class="name-badge" id="nameBadge" src="/book/ui/name-en.webp?v=2" alt="" width="237" height="99"></a>
+  <button class="lang" id="lang" type="button"><img id="langBadge" src="/book/ui/lang-ar.webp?v=2" alt="" width="198" height="96"></button>
+</header>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <filter id="rough" x="-5%" y="-10%" width="110%" height="120%">
+    <feTurbulence type="fractalNoise" baseFrequency=".035" numOctaves="2" seed="7" result="n"/>
+    <feDisplacementMap in="SourceGraphic" in2="n" scale="5" xChannelSelector="R" yChannelSelector="G"/>
+  </filter>
+  <filter id="threshold"><feColorMatrix in="SourceGraphic" type="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 255 -140"/></filter>
+  <filter id="roughText" x="-5%" y="-20%" width="110%" height="140%">
+    <feTurbulence type="fractalNoise" baseFrequency=".08" numOctaves="1" seed="3" result="n"/>
+    <feDisplacementMap in="SourceGraphic" in2="n" scale="1.6" xChannelSelector="R" yChannelSelector="G"/>
+  </filter>
+</svg>
+<div class="alive" id="alive" aria-hidden="true"><div class="lantern"></div><div class="cloud c1"></div><div class="cloud c2"></div></div>
+
+<main class="stage" id="stage" aria-label="Interactive book">
+  <canvas id="scene" aria-hidden="true"></canvas>
+  <div class="invite" id="invite">
+    <button class="open-btn pill terracotta" id="openBtn" type="button">
+      <span data-t="open">Open the book</span>
+      <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 3.5h9.5a2 2 0 0 1 2 2V16.5H6a2 2 0 0 1-2-2z"/><path d="M4 14.5a2 2 0 0 1 2-2h9.5M7 6.5h5"/></svg>
+    </button>
+    <p><span data-t="cover.sub">About me &amp; what I do</span></p>
+  </div>
+  <div class="reading" id="reading" aria-live="polite"></div>
+</main>
+
+<div class="under">
+  <div class="caption" id="caption" aria-hidden="true"></div>
+  <div class="actions" id="actions"></div>
+  <nav class="controls" id="controls" aria-label="Book navigation" hidden>
+    <button class="arrow" id="prev" type="button" aria-label="Previous page"><img src="/book/ui/prev.webp?v=2" alt="" width="115" height="113"></button>
+    <div class="dots" id="dots"></div>
+    <button class="arrow" id="next" type="button" aria-label="Next page"><img src="/book/ui/next.webp?v=2" alt="" width="111" height="110"></button>
+  </nav>
+  <p class="hint" data-t="hint">Drag a page, use the arrow keys, or click either side.</p>
+</div>
+
+
+<script type="module" src="/book/book.js?v=a12d72b1"></script>
+</body>
+</html>

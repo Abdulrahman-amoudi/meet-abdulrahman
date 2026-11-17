@@ -292,3 +292,5 @@ html[dir="rtl"] .arrow.round svg { transform: scaleX(-1); }
     .lang.pp { height: 36px; font-size: .85rem; padding: 2px 12px 0; top: 12px; inset-inline-end: 10px; border-width: 0 16px; border-image-width: 0 17px; }
     .arrow.round { width: 42px; height: 42px; }
 }
+.mark.pp span { display: inline; background: none; -webkit-background-clip: border-box; background-clip: border-box; color: inherit; -webkit-text-stroke: 0; filter: none; transform: none; font: inherit; padding: 0; text-shadow: 0 1px 0 rgba(0,0,0,.25); }
+.mark.pp:hover span { transform: none; }

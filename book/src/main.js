@@ -141,9 +141,9 @@ async function paintCover(back) {
     if (front) {
         ctx.drawImage(front, 0, 0, HW, SH);
         const ar = lang() === 'ar', line = t(UI.coverLines).join(' ');
-        let size = 82; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.direction = ar ? 'rtl' : 'ltr';
-        do { ctx.font = `800 ${size}px "Baloo Bhaijaan 2", "Readex Pro"`; size -= 2; } while (ctx.measureText(line).width > 560 && size > 36);
-        const y = ar ? 188 : 192;
+        let size = 96; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.direction = ar ? "rtl" : "ltr";
+        do { ctx.font = `800 ${size}px "Baloo Bhaijaan 2", "Readex Pro"`; size -= 2; } while (ctx.measureText(line).width > 600 && size > 36);
+        const y = ar ? 200 : 204;
         ctx.fillStyle = 'rgba(90,60,30,.18)'; ctx.fillText(line, HW / 2 + 2, y + 3);   // ink soaking into the paper
         ctx.fillStyle = '#33241a'; ctx.fillText(line, HW / 2, y);
         ctx.textBaseline = 'alphabetic';

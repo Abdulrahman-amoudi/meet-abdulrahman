@@ -137,35 +137,16 @@ async function paintCover(back) {
     const c = document.createElement('canvas'); c.width = HW; c.height = SH;
     const ctx = c.getContext('2d');
     // his painted cover, used as is; English gets its own lettering on the same ribbon
-    const front = back ? null : await loadImage('/book/art/cover-front.webp?v=2');
+    const front = back ? null : await loadImage('/book/art/cover-front.webp?v=3');
     if (front) {
         ctx.drawImage(front, 0, 0, HW, SH);
-        if (lang() === 'ar') {
-            // Arabic: a fresh painted ribbon over the English one, same arc and colours
-            const x0 = 100, x1 = HW - 100, yTop = 140, h = 150, arc = 26, notch = 40;
-            const path = () => {
-                ctx.beginPath();
-                for (let k = 0; k <= 24; k++) { const u = k / 24, x = x0 + (x1 - x0) * u; ctx.lineTo(x + (Math.random() - .5) * 2, yTop + arc * (1 - Math.sin(u * Math.PI)) + (Math.random() - .5) * 2); }
-                ctx.lineTo(x1 - notch, yTop + arc + h / 2);
-                for (let k = 24; k >= 0; k--) { const u = k / 24, x = x0 + (x1 - x0) * u; ctx.lineTo(x + (Math.random() - .5) * 2, yTop + h + arc * (1 - Math.sin(u * Math.PI)) + (Math.random() - .5) * 2); }
-                ctx.lineTo(x0 + notch, yTop + arc + h / 2);
-                ctx.closePath();
-            };
-            ctx.save(); ctx.translate(4, 8); path(); ctx.fillStyle = 'rgba(10,22,14,.35)'; ctx.fill(); ctx.restore();
-            path();
-            const g = ctx.createLinearGradient(0, yTop, 0, yTop + h + arc);
-            g.addColorStop(0, '#f1e4c6'); g.addColorStop(1, '#ddc9a0');
-            ctx.fillStyle = g; ctx.fill();
-            ctx.save(); ctx.clip();
-            for (let k = 0; k < 240; k++) { ctx.fillStyle = `rgba(150,115,70,${Math.random() * .07})`; ctx.beginPath(); ctx.ellipse(x0 + Math.random() * (x1 - x0), yTop + Math.random() * (h + arc), 10 + Math.random() * 28, 2 + Math.random() * 5, Math.random() * 3, 0, 7); ctx.fill(); }
-            ctx.restore();
-            ctx.lineWidth = 4; ctx.strokeStyle = '#5a4430'; ctx.lineJoin = 'round'; path(); ctx.stroke();
-            const line = t(UI.coverLines).join(' ');
-            let size = 84; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.direction = 'rtl';
-            do { ctx.font = `800 ${size}px "Baloo Bhaijaan 2", "Readex Pro"`; size -= 2; } while (ctx.measureText(line).width > (x1 - x0) - notch * 2 - 60 && size > 40);
-            ctx.fillStyle = '#2b1d12'; ctx.fillText(line, HW / 2, yTop + h / 2 + 4);
-            ctx.textBaseline = 'alphabetic';
-        }
+        const ar = lang() === 'ar', line = t(UI.coverLines).join(' ');
+        let size = 82; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.direction = ar ? 'rtl' : 'ltr';
+        do { ctx.font = `800 ${size}px "Baloo Bhaijaan 2", "Readex Pro"`; size -= 2; } while (ctx.measureText(line).width > 560 && size > 36);
+        const y = ar ? 188 : 192;
+        ctx.fillStyle = 'rgba(90,60,30,.18)'; ctx.fillText(line, HW / 2 + 2, y + 3);   // ink soaking into the paper
+        ctx.fillStyle = '#33241a'; ctx.fillText(line, HW / 2, y);
+        ctx.textBaseline = 'alphabetic';
         return c;
     }
     const art = back ? null : await loadImage('/book/art/cover.webp');
@@ -543,7 +524,7 @@ function onProgress() {
     if (p) {
         cap.innerHTML = `<h2>${esc(t(p.title))}</h2><p>${esc(t(p.body))}</p>`;
         reading.textContent = `${t(p.title)}. ${t(p.body)}`;
-        $('#actions').innerHTML = (p.links || []).map(l => `<a class="pill ${l.tone || 'terracotta'}" href="${l.href}" ${l.href.startsWith('http') ? 'target="_blank" rel="noopener"' : ''}>${esc(l[lang()])}${ICONS[l.icon] || ''}</a>`).join('');
+        $('#actions').innerHTML = (p.links || []).map(l => `<a class="pp ${l.tone || 'terracotta'}" href="${l.href}" ${l.href.startsWith('http') ? 'target="_blank" rel="noopener"' : ''}>${esc(l[lang()])}${ICONS[l.icon] || ''}</a>`).join('');
     }
 }
 function go(i) {
@@ -562,23 +543,12 @@ function morphText(el, to) {
     requestAnimationFrame(() => requestAnimationFrame(() => el.classList.add('mt-go')));
     el._morph = setTimeout(() => { el.classList.remove('mt-box', 'mt-go'); el.textContent = to; }, 760);
 }
-const BADGES = ['lang-en', 'lang-ar', 'name-en', 'name-ar'].map(n => `/book/ui/${n}.webp?v=2`);
-BADGES.forEach(src => { const i = new Image(); i.src = src; });          // ready before anyone switches
-function swapBadge(img, src) {
-    if (img.getAttribute('src') === src) return;
-    const ghost = img.cloneNode(); ghost.removeAttribute('id'); ghost.classList.add('badge-ghost');
-    img.parentNode.appendChild(ghost);
-    img.src = src; img.classList.remove('badge-in'); void img.offsetWidth; img.classList.add('badge-in');
-    ghost.classList.add('badge-out');
-    setTimeout(() => ghost.remove(), 600);
-}
 function renderUI(animate = false) {
     document.querySelectorAll('[data-t]').forEach(el => { const s = UI[el.dataset.t]; if (!s) return; if (animate) morphText(el, s[lang()]); else el.textContent = s[lang()]; });
     const ar = lang() === 'ar';
-    const setImg = (img, src) => animate ? swapBadge(img, src) : (img.src = src);
-    setImg($('#langBadge'), ar ? '/book/ui/lang-en.webp?v=2' : '/book/ui/lang-ar.webp?v=2');
+    const label = ar ? 'English' : 'العربية';
+    if (animate) morphText($('#langLabel'), label); else $('#langLabel').textContent = label;
     $('#lang').setAttribute('aria-label', ar ? 'English' : 'العربية');
-    setImg($('#nameBadge'), ar ? '/book/ui/name-ar.webp?v=2' : '/book/ui/name-en.webp?v=2');
     $('#lang').lang = lang() === 'ar' ? 'en' : 'ar';
     document.title = t(UI.docTitle);
     dots.innerHTML = PAGES.map((p, i) => `<button type="button" style="--c:${p.bg}" aria-label="${esc(t(UI.page))} ${num(i + 1)}: ${esc(t(p.title))}"></button>`).join('');

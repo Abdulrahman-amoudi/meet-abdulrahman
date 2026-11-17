@@ -252,3 +252,43 @@ html[dir="rtl"] .arrow img { transform: scaleX(-1); }
 /* the book fades on the compositor while it repaints */
 #scene { transition: opacity .8s var(--ease); }
 body.lang-morph #scene { opacity: 0; transition: opacity .28s ease; }
+
+/* ---------- painted buttons: real gouache pills and discs, text set on top ---------- */
+.pp {
+    --img: url(/book/ui/pill-terracotta.webp); --t: #2a1a0e;
+    position: relative; display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+    height: 50px; padding: 4px 30px 0; cursor: pointer; text-decoration: none; background: none;
+    border-style: solid; border-width: 0 24px; border-color: transparent;
+    border-image: var(--img) 0 64 fill / 0 25px stretch;
+    font: 800 1.12rem/1 var(--story); color: var(--t); white-space: nowrap;
+    filter: drop-shadow(0 6px 8px rgba(28,30,24,.22));
+    transition: transform .22s var(--ease), filter .22s var(--ease);
+    animation: none; box-shadow: none;
+}
+.pp::before, .pp::after { content: none; }
+.pp:hover { transform: translateY(-2px) scale(1.03) rotate(-.8deg); filter: drop-shadow(0 10px 12px rgba(28,30,24,.26)); }
+.pp:active { transform: translateY(1px) scale(.97); filter: drop-shadow(0 3px 4px rgba(28,30,24,.22)); }
+.pp svg { width: 19px; height: 19px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.pp.terracotta { --img: url(/book/ui/pill-terracotta.webp); --t: #2a1a0e; }
+.pp.forest { --img: url(/book/ui/pill-forest.webp); --t: #f3ecd8; }
+.pp.teal { --img: url(/book/ui/pill-teal.webp); --t: #f3ecd8; }
+.pp.sage { --img: url(/book/ui/pill-sage.webp); --t: #2E4A36; }
+.pp.forest, .pp.teal { text-shadow: 0 1px 0 rgba(0,0,0,.25); }
+.open-btn.pp { height: 56px; font-size: 1.22rem; padding: 4px 34px 0; }
+.mark.pp { height: 52px; font-size: 1.35rem; padding: 4px 32px 0; }
+.mark.pp:hover { transform: rotate(-1.5deg) scale(1.03); }
+.lang.pp { position: absolute; inset-inline-end: 20px; top: 14px; height: 42px; font-size: 1rem; padding: 3px 20px 0; border-width: 0 20px; border-image-width: 0 21px; }
+.arrow.round { width: 50px; height: 50px; padding: 0; border: 0; display: grid; place-items: center; background: center / contain no-repeat url(/book/ui/round-sage.webp); color: #2E4A36; box-shadow: none; filter: drop-shadow(0 5px 7px rgba(28,30,24,.24)); transition: transform .22s var(--ease); }
+.arrow.round.forest { background-image: url(/book/ui/round-forest.webp); color: #f3ecd8; }
+.arrow.round svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; transform: none; }
+.arrow.round:not(:disabled):hover { transform: translateY(-2px) scale(1.05) rotate(-3deg); }
+.arrow.round:not(:disabled):active { transform: scale(.94); }
+.arrow.round:disabled { opacity: .45; cursor: default; }
+html[dir="rtl"] .arrow.round svg { transform: scaleX(-1); }
+@media (max-width: 760px) {
+    .pp { height: 42px; padding: 3px 18px 0; font-size: .98rem; border-width: 0 20px; border-image-width: 0 21px; }
+    .open-btn.pp { height: 46px; font-size: 1.05rem; }
+    .mark.pp { height: 42px; font-size: 1.1rem; padding: 3px 18px 0; }
+    .lang.pp { height: 36px; font-size: .85rem; padding: 2px 12px 0; top: 12px; inset-inline-end: 10px; border-width: 0 16px; border-image-width: 0 17px; }
+    .arrow.round { width: 42px; height: 42px; }
+}

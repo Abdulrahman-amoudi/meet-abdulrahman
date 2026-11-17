@@ -6,7 +6,7 @@
 import {
     WebGLRenderer, Scene, PerspectiveCamera, Group, Mesh, PlaneGeometry, BoxGeometry,
     MeshStandardMaterial, MeshBasicMaterial, Shape, ExtrudeGeometry, AdditiveBlending, ShadowMaterial, CanvasTexture, SRGBColorSpace, DirectionalLight, AmbientLight,
-    PCFSoftShadowMap, FrontSide, BackSide, Color, Vector3, ACESFilmicToneMapping, RepeatWrapping,
+    PCFShadowMap, FrontSide, BackSide, Color, Vector3, ACESFilmicToneMapping, RepeatWrapping,
 } from 'three';
 import { PAGES, UI } from './content.js';
 import { sceneSvg } from './scenes.js';
@@ -232,9 +232,9 @@ function roundOuter(c, right) {
 /* ------------------------------------------------------------------ scene */
 const canvas = $('#scene');
 const renderer = new WebGLRenderer({ canvas, antialias: true, alpha: true, powerPreference: 'high-performance' });
-renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.setPixelRatio(Math.min(devicePixelRatio, innerWidth <= 760 ? 1.25 : 1.5));
 renderer.shadowMap.enabled = true;
-renderer.shadowMap.type = PCFSoftShadowMap;
+renderer.shadowMap.type = PCFShadowMap;
 renderer.outputColorSpace = SRGBColorSpace;
 renderer.toneMapping = ACESFilmicToneMapping;
 renderer.toneMappingExposure = .95;   // night: match the painted backdrop
@@ -249,7 +249,7 @@ const moon = new DirectionalLight('#9fb4ff', .45); moon.position.set(-2, 3, 3); 
 const sun = new DirectionalLight('#ffcf94', 2.5);               // warm lantern light from the right
 sun.position.set(2.2, 1.4, 3.6);
 sun.castShadow = true;
-sun.shadow.mapSize.set(2048, 2048);
+sun.shadow.mapSize.set(1024, 1024);
 Object.assign(sun.shadow.camera, { left: -2.5, right: 2.5, top: 2.5, bottom: -2.5, near: .5, far: 10 });
 sun.shadow.radius = 18; sun.shadow.blurSamples = 16; sun.shadow.bias = -0.0012; sun.shadow.normalBias = .012;   // no shadow acne stripes on flat pages
 scene.add(sun);
@@ -338,6 +338,8 @@ class Sheet {
         this.front.material.needsUpdate = this.back.material.needsUpdate = true;
     }
     pose(turn, zRight, zLeft) {
+        const key = turn.toFixed(5) + '|' + zRight.toFixed(5) + '|' + zLeft.toFixed(5);
+        if (key === this.key) return; this.key = key;
         if (Math.abs(turn - this.turn) < 1e-5 && this.zr === zRight && this.zl === zLeft) return;
         this.turn = turn; this.zr = zRight; this.zl = zLeft;
         const pos = this.geo.attributes.position.array;
@@ -377,24 +379,40 @@ const sheets = Array.from({ length: N + 1 }, (_, i) => new Sheet(i));
 
 /* ------------------------------------------------------------- textures */
 let painting = null;
+let paintRun = 0;
 async function paintAll(gentle = false) {
-    const breathe = () => gentle ? new Promise(r => setTimeout(r, 0)) : null;
+    const run = ++paintRun;
     textInCanvas = innerWidth > 760;
-    await Promise.all([
-        document.fonts.load('800 90px "Baloo Bhaijaan 2"', 'Aa'), document.fonts.load('800 90px "Baloo Bhaijaan 2"', 'عربي'), document.fonts.load('700 100px "Readex Pro"', 'Aa'), document.fonts.load('400 40px "Readex Pro"', 'Aa'),
-        document.fonts.load('700 100px "Readex Pro"', 'عربي'), document.fonts.load('400 40px "Readex Pro"', 'عربي'),
-    ]).catch(() => {});
-    const spreads = [];
-    for (let i = 0; i < PAGES.length; i++) { spreads.push(await paintSpread(PAGES[i], i)); await breathe(); }
-    const front = await paintCover(false), backC = await paintCover(true);
+    PAGES.forEach(p => loadImage(`/book/art/${p.id}.webp?v=vec1`));      // start every download at once
+    let fontsIn = false;
+    await Promise.race([new Promise(r => setTimeout(r, 1200)), Promise.all([
+        document.fonts.load('800 90px "Baloo Bhaijaan 2"', 'Aa'), document.fonts.load('800 90px "Baloo Bhaijaan 2"', 'عربي'),
+        document.fonts.load('700 100px "Readex Pro"', 'Aa'), document.fonts.load('400 40px "Readex Pro"', 'Aa'),
+    ]).then(() => { fontsIn = true; }).catch(() => {})]);
+    if (!fontsIn && !gentle) document.fonts.ready.then(() => { if (run === paintRun) paintAll(true); });
     const r = rtl();
     mirrored = r; book.scale.x = r ? -1 : 1;
-    sheets.forEach((s, i) => {
-        const f = i === 0 ? roundOuter(front, true) : half(spreads[i - 1], !r);
-        const b = i === N ? roundOuter(backC, false) : half(spreads[i], r);
-        s.setTextures(f, b, r);
-    });
+    // 1. cover first: this is all anyone sees before opening
+    const front = roundOuter(await paintCover(false), true), backC = roundOuter(await paintCover(true), false);
+    const blank = (p, right) => { const c = document.createElement('canvas'); c.width = HW; c.height = SH; const g = c.getContext('2d'); g.fillStyle = p.bg; g.fillRect(0, 0, HW, SH); return roundOuter(c, right); };
+    const faces = sheets.map((s, i) => ({ f: i === 0 ? front : blank(PAGES[i - 1], !r), b: i === N ? backC : blank(PAGES[i], r) }));
+    sheets.forEach((s, i) => s.setTextures(faces[i].f, faces[i].b, r));
     needsRender = true;
+    const ready = Promise.resolve();
+    // 2. pages, one at a time, without blocking the first frame
+    (async () => {
+        for (let i = 0; i < PAGES.length; i++) {
+            await new Promise(res => (window.requestIdleCallback || setTimeout)(res, { timeout: 120 }));
+            if (run !== paintRun) return;
+            const sp = await paintSpread(PAGES[i], i);
+            if (run !== paintRun) return;
+            faces[i + 1].f = half(sp, !r); faces[i].b = half(sp, r);
+            sheets[i].setTextures(faces[i].f, faces[i].b, r);
+            sheets[i + 1].setTextures(faces[i + 1].f, faces[i + 1].b, r);
+            needsRender = true;
+        }
+    })();
+    return ready;
 }
 
 /* -------------------------------------------------------------- motion */
@@ -472,9 +490,9 @@ function frame(now) {
         }
     }
     const moving = P !== layout.lastP;
-    if (moving || needsRender || !opened) {
+    if (moving || needsRender || intro) {
         // the closed book breathes on the desk
-        book.position.z = opened ? 0 : Math.sin(now / 1100) * .012 + .012;
+        book.position.z = 0;
         // arrival: the book rises gently into place the first time it is shown
         const ik = intro ? Math.min(1, (now - intro) / 1300) : 1;
         book.position.y = -(1 - easeInOut(ik)) * .35;
@@ -659,10 +677,13 @@ requestAnimationFrame(frame);
     // the backdrop leans a little with the pointer
     let tx = 0, ty = 0, cx = 0, cy = 0;
     addEventListener('pointermove', e => { tx = e.clientX / innerWidth - .5; ty = e.clientY / innerHeight - .5; }, { passive: true });
-    const root = document.documentElement;
-    (function drift() {
-        cx += (tx - cx) * .05; cy += (ty - cy) * .05;
-        root.style.setProperty('--mx', cx.toFixed(4)); root.style.setProperty('--my', cy.toFixed(4));
-        requestAnimationFrame(drift);
-    })();
+    const bg = $('#bg'), al = $('#alive');
+    let running = false;
+    const drift = () => {
+        cx += (tx - cx) * .08; cy += (ty - cy) * .08;
+        bg.style.transform = `translate3d(${(-cx * 14).toFixed(2)}px, ${(-cy * 8).toFixed(2)}px, 0) scale(1.03)`;
+        al.style.transform = `translate3d(${(-cx * 8).toFixed(2)}px, ${(-cy * 5).toFixed(2)}px, 0)`;
+        if (Math.abs(tx - cx) + Math.abs(ty - cy) > .0005) requestAnimationFrame(drift); else running = false;
+    };
+    addEventListener('pointermove', () => { if (!running) { running = true; requestAnimationFrame(drift); } }, { passive: true });
 }

@@ -340,3 +340,8 @@ body::after { background: radial-gradient(40% 30% at 50% 72%, rgba(255,214,140,.
 }
 .invite p { display: inline-block; margin-top: 4px; padding: 5px 14px 4px; border-radius: 999px; background: rgba(15, 59, 68, .55); color: #f4ecd9; text-shadow: none; }
 .hint { display: inline-block; padding: 4px 12px 3px; border-radius: 999px; background: rgba(15, 59, 68, .5); text-shadow: none; }
+
+/* backdrop as a real layer (moved directly, composited) */
+body::before { content: none; }
+.bg { position: fixed; inset: -2%; z-index: 0; pointer-events: none; background: url(/book/art/night.webp?v=2) center 100% / cover no-repeat, #0f3b44; transform: scale(1.03); will-change: transform; }
+.alive { transform: none; will-change: transform; }
